@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from datetime import date, time, datetime
 
 # Creating class the will describe the patient information
@@ -106,6 +107,24 @@ print('Unique number of Alcoholism: '+str(len(uniqueAlcoholism)))
 print('Unique number of Handicap: '+str(len(uniqueHandicap)))
 print('Unique number of SMS Received: '+str(len(uniqueSmsReceived)))
 print('Unique number of No Shows: '+str(len(uniqueNoShow)))
+
+def featurePlotter(xValues, yValues, yName):
+    myList = []
+    xList = []
+    yList = []
+    for xValue in range(len(xValues)):
+        xList.append(str(xValues[xValue]))
+        yList.append(yValues[xValue])
+    myList.append(xList)
+    myList.append(yList)
+    plt.scatter(myList[:][0], myList[:][1])
+    plt.suptitle('Patient ID vs '+yName, fontsize=20)
+    plt.xlabel('Patient ID', fontsize=18)
+    plt.ylabel(yName, fontsize=16)
+    plt.show()
+
+#featurePlotter(excelDataFrame["PatientId"], excelDataFrame["Age"], "Age")
+featurePlotter(excelDataFrame["PatientId"], excelDataFrame["ScheduledDay"], "Appointment Times")
 
 # Creating a list of patient instances to store all patient details
 patientList = []
