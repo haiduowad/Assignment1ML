@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import date, time, datetime
+from sklearn.preprocessing import MinMaxScaler
 
 # Creating class the will describe the patient information
 class PatientInformation():
@@ -108,6 +109,7 @@ print('Unique number of Handicap: '+str(len(uniqueHandicap)))
 print('Unique number of SMS Received: '+str(len(uniqueSmsReceived)))
 print('Unique number of No Shows: '+str(len(uniqueNoShow)))
 
+# Function that plots a feautre
 def featurePlotter(xValues, yValues, yName):
     myList = []
     xList = []
@@ -124,7 +126,34 @@ def featurePlotter(xValues, yValues, yName):
     plt.show()
 
 #featurePlotter(excelDataFrame["PatientId"], excelDataFrame["Age"], "Age")
-featurePlotter(excelDataFrame["PatientId"], excelDataFrame["ScheduledDay"], "Appointment Times")
+#featurePlotter(excelDataFrame["PatientId"], excelDataFrame["ScheduledDay"], "Appointment Times")
+
+# Checking for outliers (for age)
+print("The highest age is: "+ str(excelDataFrame["Age"].max()))
+print("The lowest age is: "+ str(excelDataFrame["Age"].min()))
+
+# Function that removes rows with negative ages
+def negativeAgeCleaner(dataFrame):
+    for index, row in dataFrame.iterrows():
+        if row['Age'] < 0:
+            print("Patient ID "+str(row['PatientId'])+" has a negative age. Removing it from our list.")
+            dataFrame.drop(index)
+    return dataFrame
+
+excelDataFrame = negativeAgeCleaner(excelDataFrame)
+
+neighbourhoodToIntDict = {}
+for neighbourhood in range(len(uniqueNeighbourhood)):
+    tempDict = {uniqueNeighbourhood[neighbourhood]:neighbourhood}
+    neighbourhoodToIntDict.update(tempDict)
+
+# Function the replaces neighbourhoods with their equivalent int
+def neighbourhoodToInt(dataFrame):
+    for key in neighbourhoodToIntDict:
+        dataFrame['Neighbourhood'] = dataFrame['Neighbourhood'].replace([key], neighbourhoodToIntDict[key])
+    return dataFrame
+
+excelDataFrame = neighbourhoodToInt(excelDataFrame)
 
 # Creating a list of patient instances to store all patient details
 patientList = []
