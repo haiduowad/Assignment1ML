@@ -155,6 +155,27 @@ def neighbourhoodToInt(dataFrame):
 
 excelDataFrame = neighbourhoodToInt(excelDataFrame)
 
+# Normalizing age
+AgeMinMax = MinMaxScaler()
+Ages = []
+for age in uniqueAge:
+    Ages.append([age])
+AgeMinMax.fit(Ages)
+AgesScaled = AgeMinMax.transform(Ages)
+AgeToNormalizedAgeDict = {}
+for age in range(len(Ages)):
+    tempDict = {Ages[age][0]: AgesScaled[age][0]}
+    AgeToNormalizedAgeDict.update(tempDict)
+
+
+# Function the replaces age with their equivalent normalized age
+def AgeToNormalizedAge(dataFrame):
+    for key in AgeToNormalizedAgeDict:
+        dataFrame['Age'] = dataFrame['Age'].replace([key], AgeToNormalizedAgeDict[key])
+    return dataFrame
+
+excelDataFrame = AgeToNormalizedAge(excelDataFrame)
+
 # Creating a list of patient instances to store all patient details
 patientList = []
 for index, row in excelDataFrame.iterrows():
