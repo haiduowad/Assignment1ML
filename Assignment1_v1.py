@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import date, time, datetime
 from sklearn.preprocessing import MinMaxScaler
+import seaborn as sn
 
 # Creating class the will describe the patient information
 class PatientInformation():
@@ -151,8 +152,30 @@ excelDataFrame["NormalizedAge"] = ""
 for index, row in excelDataFrame.iterrows():
     excelDataFrame.at[index, 'NormalizedAge'] = AgeToNormalizedAgeDict[row["Age"]]
 
+excelDataFrame["noShowInt"] = ""
+for index, row in excelDataFrame.iterrows():
+    if row["No-show"] == "Yes":
+        excelDataFrame.at[index, 'noShowInt'] = int(1)
+    elif row["No-show"] == "No":
+        excelDataFrame.at[index, 'noShowInt'] = int(0)
+
 # Creating excel sheet for the cleaned data
 excelDataFrame.to_excel("output.xlsx")
+
+df = excelDataFrame.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt','noShowInt'], axis=1)
+df["NormalizedAge"] = pd.to_numeric(df["NormalizedAge"])
+df["Scholarship"] = pd.to_numeric(df["Scholarship"])
+df["Hipertension"] = pd.to_numeric(df["Hipertension"])
+df["Diabetes"] = pd.to_numeric(df["Diabetes"])
+df["Alcoholism"] = pd.to_numeric(df["Alcoholism"])
+df["Handcap"] = pd.to_numeric(df["Handcap"])
+df["NeighbourhoodInt"] = pd.to_numeric(df["NeighbourhoodInt"])
+df["noShowInt"] = pd.to_numeric(df["noShowInt"])
+#pd.set_option("display.max_rows", None, "display.max_columns", None)
+corrMatrix = df.corr()
+print(corrMatrix)
+sn.heatmap(corrMatrix, annot=True)
+plt.show()
 
 # Creating a list of patient instances to store all patient details
 patientList = []
