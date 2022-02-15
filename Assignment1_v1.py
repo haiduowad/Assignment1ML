@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import date, time, datetime
+#from datetime import date, time, datetime
+import datetime as dt
 from sklearn.preprocessing import MinMaxScaler
 import seaborn as sn
 
@@ -103,26 +104,38 @@ excelDataFrame["NeighbourhoodInt"] = ""
 for index, row in excelDataFrame.iterrows():
     excelDataFrame.at[index, 'NeighbourhoodInt'] = neighbourhoodToIntDict[row["Neighbourhood"]]
 
-# Creating columns for date and time and populating them
-excelDataFrame["Year"] = ""
-excelDataFrame["Month"] = ""
-excelDataFrame["Day"] = ""
-excelDataFrame["Hour"] = ""
-excelDataFrame["Minute"] = ""
-excelDataFrame["Second"] = ""
-for index, row in excelDataFrame.iterrows():
-    editedDay = row["AppointmentDay"].split("T")[0].split('-')
-    editedTime = row["ScheduledDay"].split("T")[1].replace('Z', '').split(':')
-    excelDataFrame.at[index, 'Year'] = editedDay[0]
-    excelDataFrame.at[index, 'Month'] = editedDay[1]
-    excelDataFrame.at[index, 'Day'] = editedDay[2]
-    excelDataFrame.at[index, 'Hour'] = editedTime[0]
-    excelDataFrame.at[index, 'Minute'] = editedTime[1]
-    excelDataFrame.at[index, 'Second'] = editedTime[2]
-
 # Changing dates to datetime format
-excelDataFrame['ScheduledDay'] = pd.to_datetime(excelDataFrame['ScheduledDay'])
-excelDataFrame['AppointmentDay'] = pd.to_datetime(excelDataFrame['AppointmentDay'])
+excelDataFrame['ScheduledDay'] = pd.to_datetime(excelDataFrame['ScheduledDay'], format="%Y-%m-%dT%H:%M:%SZ", errors="coerce")
+excelDataFrame['AppointmentDay'] = pd.to_datetime(excelDataFrame['AppointmentDay'], format="%Y-%m-%dT%H:%M:%SZ", errors="coerce")
+
+# Creating columns for date and time and populating them
+excelDataFrame["AppointmentYear"] = excelDataFrame["AppointmentDay"].dt.year
+excelDataFrame["AppointmentMonth"] = excelDataFrame["AppointmentDay"].dt.month
+excelDataFrame["AppointmentDay1"] = excelDataFrame["AppointmentDay"].dt.day
+excelDataFrame["AppointmentHour"] = excelDataFrame["AppointmentDay"].dt.hour
+excelDataFrame["AppointmentMinute"] = excelDataFrame["AppointmentDay"].dt.minute
+excelDataFrame["AppointmentSecond"] = excelDataFrame["AppointmentDay"].dt.second
+excelDataFrame["AppointmentDayofWeek"] = excelDataFrame["AppointmentDay"].dt.dayofweek
+excelDataFrame["ScheduleYear"] = excelDataFrame["ScheduledDay"].dt.year
+excelDataFrame["ScheduleMonth"] = excelDataFrame["ScheduledDay"].dt.month
+excelDataFrame["ScheduleDay"] = excelDataFrame["ScheduledDay"].dt.day
+excelDataFrame["ScheduleHour"] = excelDataFrame["ScheduledDay"].dt.hour
+excelDataFrame["ScheduleMinute"] = excelDataFrame["ScheduledDay"].dt.minute
+excelDataFrame["ScheduleSecond"] = excelDataFrame["ScheduledDay"].dt.second
+excelDataFrame["ScheduleDayofWeek"] = excelDataFrame["ScheduledDay"].dt.dayofweek
+
+# Checking for appointment that don't make sense (where the appointment happens before the scheduled date)
+print("Number of appointments before their schedule time: "+str((excelDataFrame["ScheduledDay"] > excelDataFrame["AppointmentDay"]).sum()))
+# Making the appointment day at the end of the day to get time component to fix this issue
+excelDataFrame['AppointmentDay'] = excelDataFrame['AppointmentDay'] + pd.Timedelta('1d') - pd.Timedelta('1s')
+# Now check for improvements
+print("Number of appointments before their schedule time after fix: "+str((excelDataFrame["ScheduledDay"] > excelDataFrame["AppointmentDay"]).sum()))
+# Remove the bad rows
+print("Removing these rows")
+excelDataFrame = excelDataFrame.loc[(excelDataFrame["AppointmentDay"] >= excelDataFrame["ScheduledDay"])].copy()
+
+# Creating the wait times
+excelDataFrame["WaitingTime"] = (excelDataFrame["AppointmentDay"]-excelDataFrame["ScheduledDay"]).dt.total_seconds()/(60*60*24)
 
 # Creating dictionary with normalized ages
 AgeMinMax = MinMaxScaler()
@@ -177,3 +190,5 @@ sn.heatmap(corrMatrix, annot=True)
 plt.show()
 
 ################################################## Data Cleaning End ###################################################
+
+#finalData = excelDataFrame.filter([''], axis=1)
