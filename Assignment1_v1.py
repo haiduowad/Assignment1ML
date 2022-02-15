@@ -5,36 +5,12 @@ from datetime import date, time, datetime
 from sklearn.preprocessing import MinMaxScaler
 import seaborn as sn
 
-# Creating class the will describe the patient information
-class PatientInformation():
-    def __init__(self, id, appointmentID, gender, age, scheduleDay, scheduleTime, neighbourhood, year, month, day, hour, minute, second, scholarship, hypertension, diabetes, alcoholism, \
-                 handicap, smsReceived, noShow, normalizedAge, neighbourhoodInt):
-        self.id             = id
-        self.appointmentID  = appointmentID
-        self.gender         = gender
-        self.age            = age
-        self.scheduleDay    = scheduleDay
-        self.scheduleTime   = scheduleTime
-        self.year           = year
-        self.month          = month
-        self.day            = day
-        self.hour           = hour
-        self.minute         = minute
-        self.second         = second
-        self.neighbourhood  = neighbourhood
-        self.scholarship    = scholarship
-        self.hypertension   = hypertension
-        self.diabetes       = diabetes
-        self.alcoholism     = alcoholism
-        self.handicap       = handicap
-        self.smsReceived    = smsReceived
-        self.noShow         = noShow
-        self.normalizedAge  = normalizedAge
-        self.neighbourhoodInt   = neighbourhoodInt
+
+################################################ Data Cleaning Start ###################################################
 
 # Importing the patent information
 excelDataFrame = pd.read_excel (r'MedicalCentre.xlsx')
-#excelDataFrame = pd.read_excel (r'MedicalCentre2.xlsx')
+# excelDataFrame = pd.read_excel (r'MedicalCentre2.xlsx')
 
 # Check for empty cells and removing them
 emptyCells = np.where(pd.isnull(excelDataFrame))
@@ -42,6 +18,14 @@ for index in range(len(emptyCells[0])):
     print("Empty cell found at ["+str(emptyCells[0][index])+", "+str(emptyCells[1][index])+"]")
     print("Removing row number "+str(emptyCells[0][index]))
     excelDataFrame = excelDataFrame.drop(emptyCells[0][index])
+
+# Checking for duplicate appointments and removing them
+duplicateAppointments = excelDataFrame['AppointmentID'].duplicated().tolist()
+for index in range(len(duplicateAppointments)):
+    if duplicateAppointments[index] == True:
+        print("There is a duplicate appointment at index "+str(index))
+        print("Dropping index "+str(index))
+        excelDataFrame = excelDataFrame.drop(index)
 
 # Getting number of unique values in a feature set
 uniquePatientId = pd.unique(excelDataFrame[["PatientId"]].values.ravel())
@@ -97,15 +81,16 @@ def featurePlotter(xValues, yValues, yName):
 print("The highest age is: "+ str(excelDataFrame["Age"].max()))
 print("The lowest age is: "+ str(excelDataFrame["Age"].min()))
 
-# Function that removes rows with negative ages
-def negativeAgeCleaner(dataFrame):
-    for index, row in dataFrame.iterrows():
-        if row['Age'] < 0:
-            print("Row "+str(index)+" has a negative age. Removing it from our list.")
-            dataFrame = dataFrame.drop(index)
-    return dataFrame
+# Removing negative ages
+for index, row in excelDataFrame.iterrows():
+    if row['Age'] < 0:
+        print("Row "+str(index)+" has a negative age. Removing it from our list.")
+        excelDataFrame = excelDataFrame.drop(index)
 
-excelDataFrame = negativeAgeCleaner(excelDataFrame)
+# Changing handicap values to 1 if greater
+for index, row in excelDataFrame.iterrows():
+    if row['Handcap'] > 0:
+        excelDataFrame.at[index, 'Handcap'] = int(1)
 
 # Creating dictionary with neighbourhood as integers
 neighbourhoodToIntDict = {}
@@ -135,6 +120,10 @@ for index, row in excelDataFrame.iterrows():
     excelDataFrame.at[index, 'Minute'] = editedTime[1]
     excelDataFrame.at[index, 'Second'] = editedTime[2]
 
+# Changing dates to datetime format
+excelDataFrame['ScheduledDay'] = pd.to_datetime(excelDataFrame['ScheduledDay'])
+excelDataFrame['AppointmentDay'] = pd.to_datetime(excelDataFrame['AppointmentDay'])
+
 # Creating dictionary with normalized ages
 AgeMinMax = MinMaxScaler()
 Ages = []
@@ -152,17 +141,26 @@ excelDataFrame["NormalizedAge"] = ""
 for index, row in excelDataFrame.iterrows():
     excelDataFrame.at[index, 'NormalizedAge'] = AgeToNormalizedAgeDict[row["Age"]]
 
-excelDataFrame["noShowInt"] = ""
+# Changing no-show to int values (no-show == 1)
+excelDataFrame["NoShowInt"] = ""
 for index, row in excelDataFrame.iterrows():
     if row["No-show"] == "Yes":
-        excelDataFrame.at[index, 'noShowInt'] = int(1)
+        excelDataFrame.at[index, 'NoShowInt'] = int(1)
     elif row["No-show"] == "No":
-        excelDataFrame.at[index, 'noShowInt'] = int(0)
+        excelDataFrame.at[index, 'NoShowInt'] = int(0)
+
+# Changing gender to int (M == 1)
+excelDataFrame["GenderInt"] = ""
+for index, row in excelDataFrame.iterrows():
+    if row["Gender"] == "M":
+        excelDataFrame.at[index, 'GenderInt'] = int(1)
+    elif row["Gender"] == "F":
+        excelDataFrame.at[index, 'GenderInt'] = int(0)
 
 # Creating excel sheet for the cleaned data
-excelDataFrame.to_excel("output.xlsx")
+# excelDataFrame.to_excel("output.xlsx")
 
-df = excelDataFrame.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt','noShowInt'], axis=1)
+df = excelDataFrame.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt','NoShowInt', 'GenderInt'], axis=1)
 df["NormalizedAge"] = pd.to_numeric(df["NormalizedAge"])
 df["Scholarship"] = pd.to_numeric(df["Scholarship"])
 df["Hipertension"] = pd.to_numeric(df["Hipertension"])
@@ -170,16 +168,12 @@ df["Diabetes"] = pd.to_numeric(df["Diabetes"])
 df["Alcoholism"] = pd.to_numeric(df["Alcoholism"])
 df["Handcap"] = pd.to_numeric(df["Handcap"])
 df["NeighbourhoodInt"] = pd.to_numeric(df["NeighbourhoodInt"])
-df["noShowInt"] = pd.to_numeric(df["noShowInt"])
+df["NoShowInt"] = pd.to_numeric(df["NoShowInt"])
+df["GenderInt"] = pd.to_numeric(df["GenderInt"])
 #pd.set_option("display.max_rows", None, "display.max_columns", None)
 corrMatrix = df.corr()
 print(corrMatrix)
 sn.heatmap(corrMatrix, annot=True)
 plt.show()
 
-# Creating a list of patient instances to store all patient details
-patientList = []
-for index, row in excelDataFrame.iterrows():
-    patientList.append(PatientInformation(row['PatientId'], row['AppointmentID'], row['Gender'], row['Age'], row['AppointmentDay'], row['ScheduledDay'], \
-                                          row['Neighbourhood'], row['Year'], row['Month'], row['Day'], row['Hour'], row['Minute'], row['Second'], row['Scholarship'], row['Hipertension'], row['Diabetes'], row['Alcoholism'], \
-                                          row['Handcap'], row['SMS_received'], row['No-show'], row['NormalizedAge'], row['NeighbourhoodInt']))
+################################################## Data Cleaning End ###################################################
