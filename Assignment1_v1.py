@@ -7,7 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 import seaborn as sn
 
 
-################################################ Data Cleaning Start ###################################################
+############################################ Data Cleaning Start (A) ###################################################
 
 # Importing the patent information
 excelDataFrame = pd.read_excel (r'MedicalCentre.xlsx')
@@ -124,18 +124,15 @@ excelDataFrame["ScheduleMinute"] = excelDataFrame["ScheduledDay"].dt.minute
 excelDataFrame["ScheduleSecond"] = excelDataFrame["ScheduledDay"].dt.second
 excelDataFrame["ScheduleDayofWeek"] = excelDataFrame["ScheduledDay"].dt.dayofweek
 
-# Checking for appointment that don't make sense (where the appointment happens before the scheduled date)
-print("Number of appointments before their schedule time: "+str((excelDataFrame["ScheduledDay"] > excelDataFrame["AppointmentDay"]).sum()))
-# Making the appointment day at the end of the day to get time component to fix this issue
-excelDataFrame['AppointmentDay'] = excelDataFrame['AppointmentDay'] + pd.Timedelta('1d') - pd.Timedelta('1s')
-# Now check for improvements
-print("Number of appointments before their schedule time after fix: "+str((excelDataFrame["ScheduledDay"] > excelDataFrame["AppointmentDay"]).sum()))
-# Remove the bad rows
-print("Removing these rows")
-excelDataFrame = excelDataFrame.loc[(excelDataFrame["AppointmentDay"] >= excelDataFrame["ScheduledDay"])].copy()
-
 # Creating the wait times
 excelDataFrame["WaitingTime"] = (excelDataFrame["AppointmentDay"]-excelDataFrame["ScheduledDay"]).dt.total_seconds()/(60*60*24)
+# Checking for appointment that don't make sense (where the appointment happens before the scheduled date)
+print("Number of appointments before their schedule time (Negative): "+str((excelDataFrame["WaitingTime"] < 0).sum()))
+# Turning them to positive
+for index, row in excelDataFrame.iterrows():
+    if row["WaitingTime"] < 0:
+        excelDataFrame.loc[index,'WaitingTime'] = row["WaitingTime"] * -1
+print("Number of appointments before their schedule time (Negative) after fix: "+str((excelDataFrame["WaitingTime"] < 0).sum()))
 
 # Creating dictionary with normalized ages
 AgeMinMax = MinMaxScaler()
@@ -171,24 +168,67 @@ for index, row in excelDataFrame.iterrows():
         excelDataFrame.at[index, 'GenderInt'] = int(0)
 
 # Creating excel sheet for the cleaned data
+# pd.set_option("display.max_rows", None, "display.max_columns", None)
 # excelDataFrame.to_excel("output.xlsx")
 
-df = excelDataFrame.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt','NoShowInt', 'GenderInt'], axis=1)
-df["NormalizedAge"] = pd.to_numeric(df["NormalizedAge"])
-df["Scholarship"] = pd.to_numeric(df["Scholarship"])
-df["Hipertension"] = pd.to_numeric(df["Hipertension"])
-df["Diabetes"] = pd.to_numeric(df["Diabetes"])
-df["Alcoholism"] = pd.to_numeric(df["Alcoholism"])
-df["Handcap"] = pd.to_numeric(df["Handcap"])
-df["NeighbourhoodInt"] = pd.to_numeric(df["NeighbourhoodInt"])
-df["NoShowInt"] = pd.to_numeric(df["NoShowInt"])
-df["GenderInt"] = pd.to_numeric(df["GenderInt"])
-#pd.set_option("display.max_rows", None, "display.max_columns", None)
-corrMatrix = df.corr()
-print(corrMatrix)
+correlationDataframe = excelDataFrame.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt','NoShowInt', 'GenderInt', 'WaitingTime', \
+                            'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek',''], axis=1)
+correlationDataframe["NormalizedAge"] = pd.to_numeric(correlationDataframe["NormalizedAge"])
+correlationDataframe["Scholarship"] = pd.to_numeric(correlationDataframe["Scholarship"])
+correlationDataframe["Hipertension"] = pd.to_numeric(correlationDataframe["Hipertension"])
+correlationDataframe["Diabetes"] = pd.to_numeric(correlationDataframe["Diabetes"])
+correlationDataframe["Alcoholism"] = pd.to_numeric(correlationDataframe["Alcoholism"])
+correlationDataframe["Handcap"] = pd.to_numeric(correlationDataframe["Handcap"])
+correlationDataframe["NeighbourhoodInt"] = pd.to_numeric(correlationDataframe["NeighbourhoodInt"])
+correlationDataframe["NoShowInt"] = pd.to_numeric(correlationDataframe["NoShowInt"])
+correlationDataframe["GenderInt"] = pd.to_numeric(correlationDataframe["GenderInt"])
+correlationDataframe["WaitingTime"] = pd.to_numeric(correlationDataframe["WaitingTime"])
+correlationDataframe["ScheduleHour"] = pd.to_numeric(correlationDataframe["ScheduleHour"])
+correlationDataframe["ScheduleMonth"] = pd.to_numeric(correlationDataframe["ScheduleMonth"])
+correlationDataframe["ScheduleDayofWeek"] = pd.to_numeric(correlationDataframe["ScheduleDayofWeek"])
+
+corrMatrix = correlationDataframe.corr()
 sn.heatmap(corrMatrix, annot=True)
-plt.show()
+# plt.show()
 
-################################################## Data Cleaning End ###################################################
+############################################## Data Cleaning End (A) ###################################################
 
-#finalData = excelDataFrame.filter([''], axis=1)
+######################################## Model Development Start (B) ###################################################
+
+# Creating x (features) and y (label) series
+xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
+                            'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek'], axis=1).squeeze()
+yDataFrame = correlationDataframe.filter(['NoShowInt'], axis=1).squeeze()
+
+# Splitting the data with a 30% split of testing data
+from sklearn.model_selection import train_test_split
+XTrainSet, XTestSet, yTrainSet, yTestSet = train_test_split(xDataFrame,yDataFrame, test_size=0.3,random_state=0)
+
+# Creating Naive Bayes classifier pipeline
+from sklearn.pipeline import Pipeline
+from sklearn.naive_bayes import MultinomialNB
+multinomialNBTextClf = Pipeline([('clf', MultinomialNB()), ])
+
+# Getting cross validation score information
+from sklearn.model_selection import cross_val_score
+multinomialNBTextClfScore = cross_val_score(multinomialNBTextClf, XTrainSet, yTrainSet, cv=5)
+print("The 10 fold cross validation score for MultinomialNB is : "+str(multinomialNBTextClfScore))
+print("MultinomialNB: %0.2f accuracy with a standard deviation of %0.2f" % (multinomialNBTextClfScore.mean(), multinomialNBTextClfScore.std()))
+
+# Training our model and predicting scores
+multinomialNBTextClf.fit(XTrainSet, yTrainSet)
+multinomialNBTextClfPredicted = multinomialNBTextClf.predict(XTestSet)
+
+from sklearn import metrics
+print("MultinomialNB: Classification report:")
+print(metrics.classification_report(yTestSet, multinomialNBTextClfPredicted))
+
+# Getting number of correct predictions and percentage
+correct = 0
+total = 0
+for result in range(len(yTestSet.tolist())):
+    total = total + 1
+    if yTestSet.tolist()[result] == multinomialNBTextClfPredicted.tolist()[result]:
+        correct = correct + 1
+print(str(correct)+" correct predictions out of "+str(total))
+print("The percentage of the correct predictions is: "+str(correct/total))
