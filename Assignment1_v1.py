@@ -13,6 +13,7 @@ import seaborn as sn
 excelDataFrame = pd.read_excel (r'MedicalCentre.xlsx')
 # excelDataFrame = pd.read_excel (r'MedicalCentre2.xlsx')
 
+################################## A(1) Start
 # Check for empty cells and removing them
 emptyCells = np.where(pd.isnull(excelDataFrame))
 for index in range(len(emptyCells[0])):
@@ -27,6 +28,10 @@ for index in range(len(duplicateAppointments)):
         print("There is a duplicate appointment at index "+str(index))
         print("Dropping index "+str(index))
         excelDataFrame = excelDataFrame.drop(index)
+
+################################## A(1) End
+
+################################## A(2) Start
 
 # Getting number of unique values in a feature set
 uniquePatientId = pd.unique(excelDataFrame[["PatientId"]].values.ravel())
@@ -59,28 +64,53 @@ print('Unique number of Handicap: '+str(len(uniqueHandicap)))
 print('Unique number of SMS Received: '+str(len(uniqueSmsReceived)))
 print('Unique number of No Shows: '+str(len(uniqueNoShow)))
 
+################################## A(2) End
+
+################################## A(3) Start
+
 # Function that plots a feature
-def featurePlotter(xValues, yValues, yName):
+# Takes in yLabel, yValues (Optional xValues and XLabel)
+def featurePlotter(*args):
     myList = []
-    xList = []
-    yList = []
-    for xValue in range(len(xValues)):
-        xList.append(str(xValues[xValue]))
-        yList.append(yValues[xValue])
+    yName = args[0]
+    yList = args[1]
+    if len(args) > 2:
+        xList = args[2]
+        xName = args[3]
+    else:
+        xList = []
+        for x in range(len(yList)):
+            xList.append(x)
+
     myList.append(xList)
     myList.append(yList)
     plt.scatter(myList[:][0], myList[:][1])
-    plt.suptitle('Patient ID vs '+yName, fontsize=20)
-    plt.xlabel('Patient ID', fontsize=18)
+
+    if len(args) > 2:
+        plt.suptitle('Patient ID vs '+yName, fontsize=20)
+        plt.xlabel('Patient ID', fontsize=18)
+    else:
+        plt.suptitle(yName, fontsize=20)
+        plt.xlabel('Unique Element', fontsize=18)
     plt.ylabel(yName, fontsize=16)
     plt.show()
 
-#featurePlotter(excelDataFrame["PatientId"], excelDataFrame["Age"], "Age")
-#featurePlotter(excelDataFrame["PatientId"], excelDataFrame["ScheduledDay"], "Appointment Times")
+featurePlotter("Age", uniqueAge)
+featurePlotter("Handicap", uniqueHandicap)
+#featurePlotter("Time", uniqueTime)
 
 # Checking for outliers (for age)
 print("The highest age is: "+ str(excelDataFrame["Age"].max()))
 print("The lowest age is: "+ str(excelDataFrame["Age"].min()))
+
+# Changing handicap values to 1 if greater
+for index, row in excelDataFrame.iterrows():
+    if row['Handcap'] > 0:
+        excelDataFrame.at[index, 'Handcap'] = int(1)
+
+################################## A(3) End
+
+################################## A(4) Start
 
 # Removing negative ages
 for index, row in excelDataFrame.iterrows():
@@ -88,21 +118,9 @@ for index, row in excelDataFrame.iterrows():
         print("Row "+str(index)+" has a negative age. Removing it from our list.")
         excelDataFrame = excelDataFrame.drop(index)
 
-# Changing handicap values to 1 if greater
-for index, row in excelDataFrame.iterrows():
-    if row['Handcap'] > 0:
-        excelDataFrame.at[index, 'Handcap'] = int(1)
+################################## A(4) End
 
-# Creating dictionary with neighbourhood as integers
-neighbourhoodToIntDict = {}
-for neighbourhood in range(len(uniqueNeighbourhood)):
-    tempDict = {uniqueNeighbourhood[neighbourhood]:neighbourhood}
-    neighbourhoodToIntDict.update(tempDict)
-
-# Creating column for integer value of the neighbourhood and populating it
-excelDataFrame["NeighbourhoodInt"] = ""
-for index, row in excelDataFrame.iterrows():
-    excelDataFrame.at[index, 'NeighbourhoodInt'] = neighbourhoodToIntDict[row["Neighbourhood"]]
+################################## A(5) & A(7) Start
 
 # Changing dates to datetime format
 excelDataFrame['ScheduledDay'] = pd.to_datetime(excelDataFrame['ScheduledDay'], format="%Y-%m-%dT%H:%M:%SZ", errors="coerce")
@@ -133,6 +151,25 @@ for index, row in excelDataFrame.iterrows():
     if row["WaitingTime"] < 0:
         excelDataFrame.loc[index,'WaitingTime'] = row["WaitingTime"] * -1
 print("Number of appointments before their schedule time (Negative) after fix: "+str((excelDataFrame["WaitingTime"] < 0).sum()))
+
+################################## A(5) and A(7) End
+
+################################## A(6) Start
+
+# Creating dictionary with neighbourhood as integers
+neighbourhoodToIntDict = {}
+for neighbourhood in range(len(uniqueNeighbourhood)):
+    tempDict = {uniqueNeighbourhood[neighbourhood]:neighbourhood}
+    neighbourhoodToIntDict.update(tempDict)
+
+# Creating column for integer value of the neighbourhood and populating it
+excelDataFrame["NeighbourhoodInt"] = ""
+for index, row in excelDataFrame.iterrows():
+    excelDataFrame.at[index, 'NeighbourhoodInt'] = neighbourhoodToIntDict[row["Neighbourhood"]]
+
+################################## A(6) End
+
+################################## A(8) Start
 
 # Creating dictionary with normalized ages
 AgeMinMax = MinMaxScaler()
@@ -167,9 +204,13 @@ for index, row in excelDataFrame.iterrows():
     elif row["Gender"] == "F":
         excelDataFrame.at[index, 'GenderInt'] = int(0)
 
+################################## A(8) End
+
 # Creating excel sheet for the cleaned data
 # pd.set_option("display.max_rows", None, "display.max_columns", None)
 # excelDataFrame.to_excel("output.xlsx")
+
+################################## A(9) Start
 
 correlationDataframe = excelDataFrame.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt','NoShowInt', 'GenderInt', 'WaitingTime', \
                             'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek',''], axis=1)
@@ -190,6 +231,8 @@ correlationDataframe["ScheduleDayofWeek"] = pd.to_numeric(correlationDataframe["
 corrMatrix = correlationDataframe.corr()
 sn.heatmap(corrMatrix, annot=True)
 # plt.show()
+
+################################## A(9) End
 
 ############################################## Data Cleaning End (A) ###################################################
 
