@@ -6,7 +6,6 @@ import datetime as dt
 from sklearn.preprocessing import MinMaxScaler
 import seaborn as sn
 
-
 ############################################ Data Cleaning Start (A) ###################################################
 
 # Importing the patent information
@@ -14,6 +13,7 @@ excelDataFrame = pd.read_excel (r'MedicalCentre.xlsx')
 # excelDataFrame = pd.read_excel (r'MedicalCentre2.xlsx')
 
 ################################## A(1) Start
+
 # Check for empty cells and removing them
 emptyCells = np.where(pd.isnull(excelDataFrame))
 for index in range(len(emptyCells[0])):
@@ -95,9 +95,9 @@ def featurePlotter(*args):
     plt.ylabel(yName, fontsize=16)
     plt.show()
 
-featurePlotter("Age", uniqueAge)
-featurePlotter("Handicap", uniqueHandicap)
-#featurePlotter("Time", uniqueTime)
+# featurePlotter("Age", uniqueAge)
+# featurePlotter("Handicap", uniqueHandicap)
+# featurePlotter("Time", uniqueTime)
 
 # Checking for outliers (for age)
 print("The highest age is: "+ str(excelDataFrame["Age"].max()))
@@ -251,27 +251,98 @@ XTrainSet, XTestSet, yTrainSet, yTestSet = train_test_split(xDataFrame,yDataFram
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB
 multinomialNBTextClf = Pipeline([('clf', MultinomialNB()), ])
+# from sklearn.feature_extraction.text import TfidfTransformer
+# multinomialNBTextClf    = Pipeline([('tfidf', TfidfTransformer()), ('clf', MultinomialNB()), ])
 
-# Getting cross validation score information
+# Training our model and predicting scores
+multinomialNBTextClf.fit(XTrainSet, yTrainSet)
+
+######################################### Model Development End (B) ####################################################
+
+######################################### Model Evaluation Start (C) ###################################################
+
+################################## C(1) Start
+
+# Getting 10 fold cross validation score information
 from sklearn.model_selection import cross_val_score
 multinomialNBTextClfScore = cross_val_score(multinomialNBTextClf, XTrainSet, yTrainSet, cv=5)
 print("The 10 fold cross validation score for MultinomialNB is : "+str(multinomialNBTextClfScore))
 print("MultinomialNB: %0.2f accuracy with a standard deviation of %0.2f" % (multinomialNBTextClfScore.mean(), multinomialNBTextClfScore.std()))
 
-# Training our model and predicting scores
-multinomialNBTextClf.fit(XTrainSet, yTrainSet)
-multinomialNBTextClfPredicted = multinomialNBTextClf.predict(XTestSet)
-
+# Getting classification report
 from sklearn import metrics
+multinomialNBTextClfPredicted = multinomialNBTextClf.predict(XTestSet)
 print("MultinomialNB: Classification report:")
-print(metrics.classification_report(yTestSet, multinomialNBTextClfPredicted))
+print(metrics.classification_report(yTestSet.to_numpy().tolist(), multinomialNBTextClfPredicted.tolist()))
 
 # Getting number of correct predictions and percentage
 correct = 0
 total = 0
-for result in range(len(yTestSet.tolist())):
+yTestSetNew = yTestSet.tolist()
+multinomialNBTextClfPredictedNew = multinomialNBTextClfPredicted.tolist()
+for result in range(len(yTestSetNew)):
     total = total + 1
-    if yTestSet.tolist()[result] == multinomialNBTextClfPredicted.tolist()[result]:
+    if yTestSetNew[result] == multinomialNBTextClfPredictedNew[result]:
         correct = correct + 1
-print(str(correct)+" correct predictions out of "+str(total))
-print("The percentage of the correct predictions is: "+str(correct/total))
+print(str(correct)+" correct predictions out of "+str(total)+" for MultinomialNB")
+print("The MultinomialNB percentage of the correct predictions is: "+str(correct/total))
+
+################################## C(1) End
+
+################################## C(2) Start
+
+# Getting a range of parameters for multinomial NB classifier
+gridParameters = {'clf__alpha': np.linspace(0.5, 1.5, 6), 'clf__fit_prior': [True, False]}
+from sklearn.model_selection import GridSearchCV
+clf = GridSearchCV(multinomialNBTextClf, gridParameters)
+clf.fit(XTrainSet, yTrainSet)
+
+# Getting the best score
+print("Best Score: ", clf.best_score_)
+print("Best Params: ", clf.best_params_)
+
+################################## C(2) End
+
+################################## C(3) Start
+
+from sklearn.tree import DecisionTreeClassifier
+DecisionTreeClf     = Pipeline([('clf', DecisionTreeClassifier()), ])
+DecisionTreeClf.fit(XTrainSet, yTrainSet)
+DecisionTreeClfScore = cross_val_score(DecisionTreeClf, XTrainSet, yTrainSet, cv=5)
+print("The 10 fold cross validation score for DecisionTree is : "+str(DecisionTreeClfScore))
+print("DecisionTree: %0.2f accuracy with a standard deviation of %0.2f" % (DecisionTreeClfScore.mean(), DecisionTreeClfScore.std()))
+DecisionTreeClfPredicted = DecisionTreeClf.predict(XTestSet)
+print("DecisionTree: Classification report:")
+print(metrics.classification_report(yTestSet.to_numpy().tolist(), DecisionTreeClfPredicted.tolist()))
+correct = 0
+total = 0
+DecisionTreeClfPredictedNew = DecisionTreeClfPredicted.tolist()
+for result in range(len(yTestSetNew)):
+    total = total + 1
+    if yTestSetNew[result] == DecisionTreeClfPredictedNew[result]:
+        correct = correct + 1
+print(str(correct)+" correct predictions out of "+str(total)+" for DecisionTree")
+print("The DecisionTree percentage of the correct predictions is: "+str(correct/total))
+
+from sklearn import svm
+SvmClf     = Pipeline([('clf', svm.SVC()), ])
+SvmClf.fit(XTrainSet, yTrainSet)
+SvmClfScore = cross_val_score(SvmClf, XTrainSet, yTrainSet, cv=5)
+print("The 10 fold cross validation score for SVM is : "+str(SvmClfScore))
+print("SVM: %0.2f accuracy with a standard deviation of %0.2f" % (SvmClfScore.mean(), SvmClfScore.std()))
+SvmClfPredicted = SvmClf.predict(XTestSet)
+print("SVM: Classification report:")
+print(metrics.classification_report(yTestSet.to_numpy().tolist(), DecisionTreeClfPredicted.tolist()))
+correct = 0
+total = 0
+SvmClfPredictedNew = SvmClfPredicted.tolist()
+for result in range(len(yTestSetNew)):
+    total = total + 1
+    if yTestSetNew[result] == SvmClfPredictedNew[result]:
+        correct = correct + 1
+print(str(correct)+" correct predictions out of "+str(total)+" for SVM")
+print("The SVM percentage of the correct predictions is: "+str(correct/total))
+
+################################## C(3) End
+
+######################################### Model Evaluation End (C) #####################################################
