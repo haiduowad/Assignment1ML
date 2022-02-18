@@ -1,0 +1,52 @@
+xDataFrame = correlationDataframe.filter(['SMS_received', 'NeighbourhoodInt', 'WaitingTime', \
+                             'ScheduleHour','ScheduleDayofWeek'], axis=1).squeeze()
+
+The 10 fold cross validation score for MultinomialNB is : [0.71009435 0.70453664 0.70828486 0.71280858 0.70169316 0.70634613
+ 0.71164534 0.70608763 0.70152534 0.71432265]
+MultinomialNB: 0.71 accuracy with a standard deviation of 0.00
+MultinomialNB: Classification report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.78      0.81     26565
+           1       0.31      0.40      0.35      6593
+
+    accuracy                           0.71     33158
+   macro avg       0.58      0.59      0.58     33158
+weighted avg       0.74      0.71      0.72     33158
+
+23399 correct predictions out of 33158 for MultinomialNB
+The MultinomialNB percentage of the correct predictions is: 0.7056818867241691
+Best Score:  0.7077861830738592
+Best Params:  {'clf__alpha': 0.5, 'clf__fit_prior': True}
+The 10 fold cross validation score for DecisionTree is : [0.7310327  0.73322993 0.72521649 0.72289001 0.72340701 0.73995089
+ 0.72831847 0.72676748 0.7266029  0.72905895]
+DecisionTree: 0.73 accuracy with a standard deviation of 0.00
+DecisionTree: Classification report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.82      0.83     26565
+           1       0.33      0.35      0.34      6593
+
+    accuracy                           0.73     33158
+   macro avg       0.58      0.59      0.59     33158
+weighted avg       0.74      0.73      0.73     33158
+
+24230 correct predictions out of 33158 for DecisionTree
+The DecisionTree percentage of the correct predictions is: 0.7307437119247241
+The 10 fold cross validation score for SVM is : [0.79673767 0.79673767]
+SVM: 0.80 accuracy with a standard deviation of 0.00
+SVM: Classification report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.82      0.83     26565
+           1       0.33      0.35      0.34      6593
+
+    accuracy                           0.73     33158
+   macro avg       0.58      0.59      0.59     33158
+weighted avg       0.74      0.73      0.73     33158
+
+26567 correct predictions out of 33158 for SVM
+The SVM percentage of the correct predictions is: 0.8012244405573316
+multinomialNB AUROC = 0.632943877388908
+DecisionTree AUROC = 0.5887039419692629
+Svm AUROC = 0.5740637545727265

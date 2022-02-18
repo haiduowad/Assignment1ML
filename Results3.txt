@@ -1,0 +1,57 @@
+xDataFrame = correlationDataframe.filter(['SMS_received', 'WaitingTime'], axis=1).squeeze()
+
+The 10 fold cross validation score for MultinomialNB is : [0.79682047 0.79682047 0.79669122 0.79669122 0.79669122 0.79669122
+ 0.79669122 0.79669122 0.79679421 0.79679421]
+MultinomialNB: 0.80 accuracy with a standard deviation of 0.00
+MultinomialNB: Classification report:
+C:\Python\Python39\lib\site-packages\sklearn\metrics\_classification.py:1248: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+              precision    recall  f1-score   support
+
+           0       0.80      1.00      0.89     26565
+           1       0.00      0.00      0.00      6593
+
+    accuracy                           0.80     33158
+   macro avg       0.40      0.50      0.44     33158
+weighted avg       0.64      0.80      0.71     33158
+
+C:\Python\Python39\lib\site-packages\sklearn\metrics\_classification.py:1248: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+C:\Python\Python39\lib\site-packages\sklearn\metrics\_classification.py:1248: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+26565 correct predictions out of 33158 for MultinomialNB
+The MultinomialNB percentage of the correct predictions is: 0.8011641232884975
+Best Score:  0.7967376694510305
+Best Params:  {'clf__alpha': 0.5, 'clf__fit_prior': True}
+The 10 fold cross validation score for DecisionTree is : [0.73167895 0.7305157  0.72534574 0.7305157  0.72831847 0.73775365
+ 0.72379475 0.72715523 0.72711996 0.72789555]
+DecisionTree: 0.73 accuracy with a standard deviation of 0.00
+DecisionTree: Classification report:
+              precision    recall  f1-score   support
+
+           0       0.83      0.83      0.83     26565
+           1       0.32      0.31      0.31      6593
+
+    accuracy                           0.73     33158
+   macro avg       0.57      0.57      0.57     33158
+weighted avg       0.73      0.73      0.73     33158
+
+24211 correct predictions out of 33158 for DecisionTree
+The DecisionTree percentage of the correct predictions is: 0.7301706978708004
+The 10 fold cross validation score for SVM is : [0.79673767 0.79673767]
+SVM: 0.80 accuracy with a standard deviation of 0.00
+SVM: Classification report:
+              precision    recall  f1-score   support
+
+           0       0.83      0.83      0.83     26565
+           1       0.32      0.31      0.31      6593
+
+    accuracy                           0.73     33158
+   macro avg       0.57      0.57      0.57     33158
+weighted avg       0.73      0.73      0.73     33158
+
+26565 correct predictions out of 33158 for SVM
+The SVM percentage of the correct predictions is: 0.8011641232884975
+multinomialNB AUROC = 0.5574116659899342
+DecisionTree AUROC = 0.5681815512571452
+Svm AUROC = 0.321960786396057

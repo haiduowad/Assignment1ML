@@ -241,8 +241,25 @@ plt.show()
 ######################################## Model Development Start (B) ###################################################
 
 # Creating x (features) and y (label) series
-xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
-                            'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek'], axis=1).squeeze()
+# Results1
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
+#                             'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek'], axis=1).squeeze()
+# Results2
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime'], axis=1).squeeze()
+# Results3
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'WaitingTime'], axis=1).squeeze()
+# Results4
+# xDataFrame = correlationDataframe.filter(['SMS_received','NeighbourhoodInt', 'GenderInt', 'WaitingTime'], axis=1).squeeze()
+# Results5
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
+#                              'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek'], axis=1).squeeze()
+# Results6
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NeighbourhoodInt', 'WaitingTime', \
+#                              'ScheduleHour','ScheduleDayofWeek'], axis=1).squeeze()
+# # Results7
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'WaitingTime', 'ScheduleHour','ScheduleDayofWeek'], axis=1).squeeze()
+# Results8
+xDataFrame = correlationDataframe.filter(['SMS_received', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
 yDataFrame = correlationDataframe.filter(['NoShowInt'], axis=1).squeeze()
 
 # Splitting the data with a 30% split of testing data
@@ -329,7 +346,7 @@ print("The DecisionTree percentage of the correct predictions is: "+str(correct/
 from sklearn import svm
 SvmClf     = Pipeline([('clf', svm.SVC(probability=True)), ])
 SvmClf.fit(XTrainSet, yTrainSet)
-SvmClfScore = cross_val_score(SvmClf, XTrainSet, yTrainSet, cv=10)
+SvmClfScore = cross_val_score(SvmClf, XTrainSet, yTrainSet, cv=2)
 print("The 10 fold cross validation score for SVM is : "+str(SvmClfScore))
 print("SVM: %0.2f accuracy with a standard deviation of %0.2f" % (SvmClfScore.mean(), SvmClfScore.std()))
 SvmClfPredicted = SvmClf.predict(XTestSet)
