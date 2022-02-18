@@ -95,8 +95,8 @@ def featurePlotter(*args):
     plt.ylabel(yName, fontsize=16)
     plt.show()
 
-# featurePlotter("Age", uniqueAge)
-# featurePlotter("Handicap", uniqueHandicap)
+featurePlotter("Age", uniqueAge)
+featurePlotter("Handicap", uniqueHandicap)
 # featurePlotter("Time", uniqueTime)
 
 # Checking for outliers (for age)
@@ -212,6 +212,7 @@ for index, row in excelDataFrame.iterrows():
 
 ################################## A(9) Start
 
+# Getting features that were edited to work for our ML algorithm and changing them to numeric
 correlationDataframe = excelDataFrame.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt','NoShowInt', 'GenderInt', 'WaitingTime', \
                             'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek',''], axis=1)
 correlationDataframe["NormalizedAge"] = pd.to_numeric(correlationDataframe["NormalizedAge"])
@@ -228,9 +229,10 @@ correlationDataframe["ScheduleHour"] = pd.to_numeric(correlationDataframe["Sched
 correlationDataframe["ScheduleMonth"] = pd.to_numeric(correlationDataframe["ScheduleMonth"])
 correlationDataframe["ScheduleDayofWeek"] = pd.to_numeric(correlationDataframe["ScheduleDayofWeek"])
 
+# Plotting correlation matrix
 corrMatrix = correlationDataframe.corr()
 sn.heatmap(corrMatrix, annot=True)
-# plt.show()
+plt.show()
 
 ################################## A(9) End
 
@@ -250,12 +252,10 @@ XTrainSet, XTestSet, yTrainSet, yTestSet = train_test_split(xDataFrame,yDataFram
 # Creating Naive Bayes classifier pipeline
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB
-multinomialNBTextClf = Pipeline([('clf', MultinomialNB()), ])
-# from sklearn.feature_extraction.text import TfidfTransformer
-# multinomialNBTextClf    = Pipeline([('tfidf', TfidfTransformer()), ('clf', MultinomialNB()), ])
+multinomialNBClf = Pipeline([('clf', MultinomialNB()), ])
 
 # Training our model and predicting scores
-multinomialNBTextClf.fit(XTrainSet, yTrainSet)
+multinomialNBClf.fit(XTrainSet, yTrainSet)
 
 ######################################### Model Development End (B) ####################################################
 
@@ -265,24 +265,24 @@ multinomialNBTextClf.fit(XTrainSet, yTrainSet)
 
 # Getting 10 fold cross validation score information
 from sklearn.model_selection import cross_val_score
-multinomialNBTextClfScore = cross_val_score(multinomialNBTextClf, XTrainSet, yTrainSet, cv=5)
-print("The 10 fold cross validation score for MultinomialNB is : "+str(multinomialNBTextClfScore))
-print("MultinomialNB: %0.2f accuracy with a standard deviation of %0.2f" % (multinomialNBTextClfScore.mean(), multinomialNBTextClfScore.std()))
+multinomialNBClfScore = cross_val_score(multinomialNBClf, XTrainSet, yTrainSet, cv=10)
+print("The 10 fold cross validation score for MultinomialNB is : "+str(multinomialNBClfScore))
+print("MultinomialNB: %0.2f accuracy with a standard deviation of %0.2f" % (multinomialNBClfScore.mean(), multinomialNBClfScore.std()))
 
 # Getting classification report
 from sklearn import metrics
-multinomialNBTextClfPredicted = multinomialNBTextClf.predict(XTestSet)
+multinomialNBClfPredicted = multinomialNBClf.predict(XTestSet)
 print("MultinomialNB: Classification report:")
-print(metrics.classification_report(yTestSet.to_numpy().tolist(), multinomialNBTextClfPredicted.tolist()))
+print(metrics.classification_report(yTestSet.to_numpy().tolist(), multinomialNBClfPredicted.tolist()))
 
 # Getting number of correct predictions and percentage
 correct = 0
 total = 0
 yTestSetNew = yTestSet.tolist()
-multinomialNBTextClfPredictedNew = multinomialNBTextClfPredicted.tolist()
+multinomialNBClfPredictedNew = multinomialNBClfPredicted.tolist()
 for result in range(len(yTestSetNew)):
     total = total + 1
-    if yTestSetNew[result] == multinomialNBTextClfPredictedNew[result]:
+    if yTestSetNew[result] == multinomialNBClfPredictedNew[result]:
         correct = correct + 1
 print(str(correct)+" correct predictions out of "+str(total)+" for MultinomialNB")
 print("The MultinomialNB percentage of the correct predictions is: "+str(correct/total))
@@ -294,7 +294,7 @@ print("The MultinomialNB percentage of the correct predictions is: "+str(correct
 # Getting a range of parameters for multinomial NB classifier
 gridParameters = {'clf__alpha': np.linspace(0.5, 1.5, 6), 'clf__fit_prior': [True, False]}
 from sklearn.model_selection import GridSearchCV
-clf = GridSearchCV(multinomialNBTextClf, gridParameters)
+clf = GridSearchCV(multinomialNBClf, gridParameters)
 clf.fit(XTrainSet, yTrainSet)
 
 # Getting the best score
@@ -305,10 +305,11 @@ print("Best Params: ", clf.best_params_)
 
 ################################## C(3) Start
 
+# Setting up Decision Tree and obtaining results
 from sklearn.tree import DecisionTreeClassifier
 DecisionTreeClf     = Pipeline([('clf', DecisionTreeClassifier()), ])
 DecisionTreeClf.fit(XTrainSet, yTrainSet)
-DecisionTreeClfScore = cross_val_score(DecisionTreeClf, XTrainSet, yTrainSet, cv=5)
+DecisionTreeClfScore = cross_val_score(DecisionTreeClf, XTrainSet, yTrainSet, cv=10)
 print("The 10 fold cross validation score for DecisionTree is : "+str(DecisionTreeClfScore))
 print("DecisionTree: %0.2f accuracy with a standard deviation of %0.2f" % (DecisionTreeClfScore.mean(), DecisionTreeClfScore.std()))
 DecisionTreeClfPredicted = DecisionTreeClf.predict(XTestSet)
@@ -324,10 +325,11 @@ for result in range(len(yTestSetNew)):
 print(str(correct)+" correct predictions out of "+str(total)+" for DecisionTree")
 print("The DecisionTree percentage of the correct predictions is: "+str(correct/total))
 
+# Setting up SVM and obtaining results
 from sklearn import svm
-SvmClf     = Pipeline([('clf', svm.SVC()), ])
+SvmClf     = Pipeline([('clf', svm.SVC(probability=True)), ])
 SvmClf.fit(XTrainSet, yTrainSet)
-SvmClfScore = cross_val_score(SvmClf, XTrainSet, yTrainSet, cv=5)
+SvmClfScore = cross_val_score(SvmClf, XTrainSet, yTrainSet, cv=10)
 print("The 10 fold cross validation score for SVM is : "+str(SvmClfScore))
 print("SVM: %0.2f accuracy with a standard deviation of %0.2f" % (SvmClfScore.mean(), SvmClfScore.std()))
 SvmClfPredicted = SvmClf.predict(XTestSet)
@@ -344,5 +346,47 @@ print(str(correct)+" correct predictions out of "+str(total)+" for SVM")
 print("The SVM percentage of the correct predictions is: "+str(correct/total))
 
 ################################## C(3) End
+
+################################## C(4) Start
+
+# Creating prediction probabilities
+randomProbs = [0 for _ in range(len(yTestSet))]
+multinomialNBClfPredictedProb = multinomialNBClf.predict_proba(XTestSet)
+DecisionTreeClfPredictedProb = DecisionTreeClf.predict_proba(XTestSet)
+SvmClfPredictedProb = SvmClf.predict_proba(XTestSet)
+
+# Taking only positive predictions
+multinomialNBClfPredictedProb = multinomialNBClfPredictedProb[:,1]
+DecisionTreeClfPredictedProb = DecisionTreeClfPredictedProb[:,1]
+SvmClfPredictedProb = SvmClfPredictedProb[:,1]
+
+# Calculating area under ROC curve
+from sklearn.metrics import roc_curve, roc_auc_score
+randomProbsAuc = roc_auc_score(yTestSet, randomProbs)
+multinomialNBClfPredictedProbAuc = roc_auc_score(yTestSet, multinomialNBClfPredictedProb)
+DecisionTreeClfPredictedProbAuc = roc_auc_score(yTestSet, DecisionTreeClfPredictedProb)
+SvmClfPredictedProbAuc = roc_auc_score(yTestSet, SvmClfPredictedProb)
+print("multinomialNB AUROC = "+str(multinomialNBClfPredictedProbAuc))
+print("DecisionTree AUROC = "+str(DecisionTreeClfPredictedProbAuc))
+print("Svm AUROC = "+str(SvmClfPredictedProbAuc))
+
+# Calculating FPR and TPR
+randomProbsFpr, randomProbsTpr, _ = roc_curve(yTestSet, randomProbs)
+multinomialNBClfFpr, multinomialNBClfTpr, _ = roc_curve(yTestSet, multinomialNBClfPredictedProb)
+DecisionTreeClfFpr, DecisionTreeClfTpr, _ = roc_curve(yTestSet, DecisionTreeClfPredictedProb)
+SvmClfFpr, SvmClfTpr, _ = roc_curve(yTestSet, SvmClfPredictedProb)
+
+# Plotting ROC curve
+plt.plot(randomProbsFpr, randomProbsTpr, linestyle='--', label='Random prediction (AUROC = %0.3f)' % randomProbsAuc)
+plt.plot(multinomialNBClfFpr, multinomialNBClfTpr, marker='.', label='multinomialNB (AUROC = %0.3f)' % multinomialNBClfPredictedProbAuc)
+plt.plot(DecisionTreeClfFpr, DecisionTreeClfTpr, marker='.', label='DecisionTree (AUROC = %0.3f)' % DecisionTreeClfPredictedProbAuc)
+plt.plot(SvmClfFpr, SvmClfTpr, marker='.', label='SVM (AUROC = %0.3f)' % SvmClfPredictedProbAuc)
+plt.title('ROC Plot')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.legend()
+plt.show()
+
+################################## C(4) End
 
 ######################################### Model Evaluation End (C) #####################################################

@@ -1,0 +1,2 @@
+xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
+                            'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek'], axis=1).squeeze()
