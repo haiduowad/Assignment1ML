@@ -10,7 +10,6 @@ import seaborn as sn
 
 # Importing the patent information
 excelDataFrame = pd.read_excel (r'MedicalCentre.xlsx')
-# excelDataFrame = pd.read_excel (r'MedicalCentre2.xlsx')
 
 ################################## A(1) Start
 
@@ -112,10 +111,10 @@ for index, row in excelDataFrame.iterrows():
 
 ################################## A(4) Start
 
-# Removing negative ages
+# Removing negative ages and 0
 for index, row in excelDataFrame.iterrows():
-    if row['Age'] < 0:
-        print("Row "+str(index)+" has a negative age. Removing it from our list.")
+    if row['Age'] < 1:
+        print("Row "+str(index)+" has a 0 or negative age. Removing it from our list.")
         excelDataFrame = excelDataFrame.drop(index)
 
 ################################## A(4) End
@@ -234,6 +233,8 @@ corrMatrix = correlationDataframe.corr()
 sn.heatmap(corrMatrix, annot=True)
 plt.show()
 
+# Dropping all the correlated features leaves us with SMS_received, WaitingTime and ScheduleDayofWeek
+
 ################################## A(9) End
 
 ############################################## Data Cleaning End (A) ###################################################
@@ -258,13 +259,20 @@ plt.show()
 #                              'ScheduleHour','ScheduleDayofWeek'], axis=1).squeeze()
 # # Results7
 # xDataFrame = correlationDataframe.filter(['SMS_received', 'WaitingTime', 'ScheduleHour','ScheduleDayofWeek'], axis=1).squeeze()
-# Results8
-xDataFrame = correlationDataframe.filter(['SMS_received', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
+# # Results8
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
+# Results9
+xDataFrame = correlationDataframe.filter(['SMS_received', 'NeighbourhoodInt', 'WaitingTime'], axis=1).squeeze()
 yDataFrame = correlationDataframe.filter(['NoShowInt'], axis=1).squeeze()
 
 # Splitting the data with a 30% split of testing data
 from sklearn.model_selection import train_test_split
-XTrainSet, XTestSet, yTrainSet, yTestSet = train_test_split(xDataFrame,yDataFrame, test_size=0.3,random_state=0)
+XTrainSet, XTestSet, yTrainSet, yTestSet = train_test_split(xDataFrame,yDataFrame, stratify=yDataFrame, test_size=0.3,random_state=0)
+from sklearn import preprocessing
+# XTrainSet = preprocessing.scale(XTrainSet, with_mean=True, with_std=True)
+# XTestSet = preprocessing.scale(XTestSet, with_mean=True, with_std=True)
+# yTrainSet = preprocessing.scale(yTrainSet, with_mean=True, with_std=True)
+# yTestSet = preprocessing.scale(yTestSet, with_mean=True, with_std=True)
 
 # Creating Naive Bayes classifier pipeline
 from sklearn.pipeline import Pipeline
@@ -286,11 +294,13 @@ multinomialNBClfScore = cross_val_score(multinomialNBClf, XTrainSet, yTrainSet, 
 print("The 10 fold cross validation score for MultinomialNB is : "+str(multinomialNBClfScore))
 print("MultinomialNB: %0.2f accuracy with a standard deviation of %0.2f" % (multinomialNBClfScore.mean(), multinomialNBClfScore.std()))
 
+# Obtaining Accuracy, Sensitivity and Specificity == Precision, recall of positive (1), and recall of negative (0)
 # Getting classification report
 from sklearn import metrics
 multinomialNBClfPredicted = multinomialNBClf.predict(XTestSet)
 print("MultinomialNB: Classification report:")
 print(metrics.classification_report(yTestSet.to_numpy().tolist(), multinomialNBClfPredicted.tolist()))
+print(str(set(yTestSet.to_numpy().tolist()) - set(multinomialNBClfPredicted.tolist())))
 
 # Getting number of correct predictions and percentage
 correct = 0
@@ -314,6 +324,7 @@ from sklearn.model_selection import GridSearchCV
 clf = GridSearchCV(multinomialNBClf, gridParameters)
 clf.fit(XTrainSet, yTrainSet)
 
+# After tuning the model, the best score and parameters are:
 # Getting the best score
 print("Best Score: ", clf.best_score_)
 print("Best Params: ", clf.best_params_)
@@ -330,8 +341,10 @@ DecisionTreeClfScore = cross_val_score(DecisionTreeClf, XTrainSet, yTrainSet, cv
 print("The 10 fold cross validation score for DecisionTree is : "+str(DecisionTreeClfScore))
 print("DecisionTree: %0.2f accuracy with a standard deviation of %0.2f" % (DecisionTreeClfScore.mean(), DecisionTreeClfScore.std()))
 DecisionTreeClfPredicted = DecisionTreeClf.predict(XTestSet)
+# Obtaining Accuracy, Sensitivity and Specificity == Precision, recall of positive (1), and recall of negative (0)
 print("DecisionTree: Classification report:")
 print(metrics.classification_report(yTestSet.to_numpy().tolist(), DecisionTreeClfPredicted.tolist()))
+print(str(set(yTestSet.to_numpy().tolist()) - set(DecisionTreeClfPredicted.tolist())))
 correct = 0
 total = 0
 DecisionTreeClfPredictedNew = DecisionTreeClfPredicted.tolist()
@@ -350,8 +363,10 @@ SvmClfScore = cross_val_score(SvmClf, XTrainSet, yTrainSet, cv=2)
 print("The 10 fold cross validation score for SVM is : "+str(SvmClfScore))
 print("SVM: %0.2f accuracy with a standard deviation of %0.2f" % (SvmClfScore.mean(), SvmClfScore.std()))
 SvmClfPredicted = SvmClf.predict(XTestSet)
+# Obtaining Accuracy, Sensitivity and Specificity == Precision, recall of positive (1), and recall of negative (0)
 print("SVM: Classification report:")
-print(metrics.classification_report(yTestSet.to_numpy().tolist(), DecisionTreeClfPredicted.tolist()))
+print(metrics.classification_report(yTestSet.to_numpy().tolist(), SvmClfPredicted.tolist()))
+print(str(set(yTestSet.to_numpy().tolist()) - set(SvmClfPredicted.tolist())))
 correct = 0
 total = 0
 SvmClfPredictedNew = SvmClfPredicted.tolist()
@@ -361,6 +376,8 @@ for result in range(len(yTestSetNew)):
         correct = correct + 1
 print(str(correct)+" correct predictions out of "+str(total)+" for SVM")
 print("The SVM percentage of the correct predictions is: "+str(correct/total))
+
+# After analysis, SVM
 
 ################################## C(3) End
 
