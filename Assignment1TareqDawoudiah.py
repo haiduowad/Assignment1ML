@@ -281,13 +281,13 @@ plt.show()
 # Results66
 # xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge','Hipertension', 'Diabetes', 'Alcoholism', 'Handcap', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
 # Results77
-xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Alcoholism', 'Handcap', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Alcoholism', 'Handcap', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
 # Results88
 # xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Alcoholism', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
 # Results99
 # xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'WaitingTime','ScheduleDayofWeek'], axis=1).squeeze()
 # Results1010
-# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'WaitingTime'], axis=1).squeeze()
+xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'WaitingTime'], axis=1).squeeze()
 
 yDataFrame = correlationDataframe.filter(['NoShowInt'], axis=1).squeeze()
 
