@@ -262,7 +262,33 @@ plt.show()
 # # Results8
 # xDataFrame = correlationDataframe.filter(['SMS_received', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
 # Results9
-xDataFrame = correlationDataframe.filter(['SMS_received', 'NeighbourhoodInt', 'WaitingTime'], axis=1).squeeze()
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NeighbourhoodInt', 'WaitingTime'], axis=1).squeeze()
+# Results11
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
+#                              'ScheduleHour', 'ScheduleMonth','ScheduleDayofWeek'], axis=1).squeeze()
+# Results22
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
+#                              'ScheduleHour','ScheduleDayofWeek'], axis=1).squeeze()
+# Results33
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
+#                              'ScheduleDayofWeek'], axis=1).squeeze()
+# Results44
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap', 'GenderInt', 'WaitingTime', \
+#                              'ScheduleDayofWeek'], axis=1).squeeze()
+# Results55
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap', 'WaitingTime', \
+#                              'ScheduleDayofWeek'], axis=1).squeeze()
+# Results66
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge','Hipertension', 'Diabetes', 'Alcoholism', 'Handcap', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
+# Results77
+xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Alcoholism', 'Handcap', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
+# Results88
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Alcoholism', 'WaitingTime', 'ScheduleDayofWeek'], axis=1).squeeze()
+# Results99
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'WaitingTime','ScheduleDayofWeek'], axis=1).squeeze()
+# Results1010
+# xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'WaitingTime'], axis=1).squeeze()
+
 yDataFrame = correlationDataframe.filter(['NoShowInt'], axis=1).squeeze()
 
 # Splitting the data with a 30% split of testing data

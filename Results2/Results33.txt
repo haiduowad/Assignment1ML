@@ -1,0 +1,57 @@
+xDataFrame = correlationDataframe.filter(['SMS_received', 'NormalizedAge', 'Scholarship', 'Hipertension', 'Diabetes', 'Alcoholism', 'Handcap','NeighbourhoodInt', 'GenderInt', 'WaitingTime', \
+                             'ScheduleDayofWeek'], axis=1).squeeze()
+
+The 10 fold cross validation score for MultinomialNB is : [0.71024169 0.7098411  0.70957404 0.70102817 0.70396582 0.69902524
+ 0.70556817 0.70863934 0.70530111 0.69862465]
+MultinomialNB: 0.71 accuracy with a standard deviation of 0.00
+MultinomialNB: Classification report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.78      0.81     25593
+           1       0.32      0.41      0.36      6504
+
+    accuracy                           0.71     32097
+   macro avg       0.58      0.60      0.59     32097
+weighted avg       0.74      0.71      0.72     32097
+
+set()
+22665 correct predictions out of 32097 for MultinomialNB
+The MultinomialNB percentage of the correct predictions is: 0.7061407608187681
+Best Score:  0.7052076378688743
+Best Params:  {'clf__alpha': 0.5, 'clf__fit_prior': True}
+The 10 fold cross validation score for DecisionTree is : [0.7258646  0.72626519 0.72239284 0.72025638 0.71758579 0.71384698
+ 0.72319402 0.71932167 0.71464815 0.7171852 ]
+DecisionTree: 0.72 accuracy with a standard deviation of 0.00
+DecisionTree: Classification report:
+              precision    recall  f1-score   support
+
+           0       0.83      0.82      0.83     25593
+           1       0.33      0.36      0.34      6504
+
+    accuracy                           0.72     32097
+   macro avg       0.58      0.59      0.58     32097
+weighted avg       0.73      0.72      0.73     32097
+
+set()
+23254 correct predictions out of 32097 for DecisionTree
+The DecisionTree percentage of the correct predictions is: 0.7244913854877403
+The 10 fold cross validation score for SVM is : [0.79735612 0.79738283]
+SVM: 0.80 accuracy with a standard deviation of 0.00
+SVM: Classification report:
+              precision    recall  f1-score   support
+
+           0       0.80      1.00      0.89     25593
+           1       1.00      0.00      0.00      6504
+
+    accuracy                           0.80     32097
+   macro avg       0.90      0.50      0.44     32097
+weighted avg       0.84      0.80      0.71     32097
+
+set()
+25595 correct predictions out of 32097 for SVM
+The SVM percentage of the correct predictions is: 0.7974265507679845
+multinomialNB AUROC = 0.6342072678140919
+DecisionTree AUROC = 0.5868343122535667
+Svm AUROC = 0.4894217884858487
+
+Process finished with exit code 0
